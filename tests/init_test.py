@@ -28,17 +28,25 @@ def testModelInit():
     model = M.RNNModel(10, 4, 20, 2)
     
     foundLinear = 0
-    foundEmbedding = 0
+    hasDecoderRight = False
+    hasEncoderRight = False
+    hasNLayers = False
+
     for module in model.modules():
         if isinstance(module, torch.nn.Linear):
-            assert module.in_features == 20, "You aren't using the hiddenDim argument correctly in creating the decoder."
-            assert module.out_features == 10, "You aren't using the vocabSize argument correctly in creating the decoder."
-            foundLinear += 1
+            if module.in_features == 20 and module.out_features == 10:
+                hasDecoderRight = True
+            else:
+                foundLinear += 1
         elif isinstance(module, torch.nn.Embedding):
             shape = list(module.weight.shape)
-            assert shape[0] == 10, "You aren't using the hiddenDim argument correctly in creating the embedding."
-            assert shape[1] == 4, "You aren't using the vocabSize argument correctly in creating the embedding."
-            foundEmbedding +=1
+            if shape[0] == 10 and shape[1] == 4:
+                hasEncoderRight = True
 
-    assert foundLinear, 'You failed to create a linear layer for RNNModel'
-    assert foundEmbedding, 'You failed to create an embedding layer for RNNModel'
+    if foundLinear == 2:
+        hasNLayers = True
+
+    assert hasDecoderRight, "Your decoder shape is incorrect"
+    assert hasEncoderRight, "You embedding/encoder shape is incorrect"
+    assert hasNLayers, "You don't have the correct number of hidden layers"
+
